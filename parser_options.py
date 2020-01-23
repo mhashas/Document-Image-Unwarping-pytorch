@@ -17,7 +17,7 @@ class ParserOptions():
         parser.add_argument('--dataset', type=str, default=DOCUNET_INVERTED, choices=[DOCUNET, DOCUNET_IM2IM, DOCUNET_INVERTED], help='dataset (default:' + DOCUNET + ')')
         parser.add_argument('--dataset_dir', type=str, default='labels_dataset', help='name of the dir in which the dataset is located')
         parser.add_argument('--loss_type', type=str, default=SSIM_LOSS, choices=[DOCUNET_LOSS, SSIM_LOSS, SSIM_LOSS_V2, MS_SSIM_LOSS, MS_SSIM_LOSS_V2, L1_LOSS, SMOOTH_L1_LOSS, MSE_LOSS], help='loss func type (default:' + DOCUNET_LOSS + ')')
-        parser.add_argument('--second_loss', type=int, default=0, choices=[0,1], help='if we should use two losses')
+        parser.add_argument('--second_loss', type=int, default=1, choices=[0,1], help='if we should use two losses')
         parser.add_argument('--norm_layer', type=str, default=BATCH_NORM, choices=[INSTANCE_NORM, BATCH_NORM, SYNC_BATCH_NORM])
         parser.add_argument('--init_type', type=str, default=NORMAL_INIT, choices=[NORMAL_INIT, KAIMING_INIT, XAVIER_INIT, ORTHOGONAL_INIT])
         parser.add_argument('--resize', type=str, default='64,64', help='image resize: h,w')

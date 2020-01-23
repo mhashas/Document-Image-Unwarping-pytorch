@@ -328,17 +328,10 @@ def invert_vector_field(vector_field):
                 m_y[i_, j_] = i
     return np.stack([m_x, m_y], axis=2)
 
+
 def scale_vector_field_tensor(vector_field):
-    vector_field_x = vector_field[:, 0, :, :]
-    vector_field_y = vector_field[:, 1, :, :]
-
-    vector_field_x[vector_field_x < -1] = 3 * vector_field_x.shape[2]
-    vector_field_y[vector_field_y < -1] = 3 * vector_field_y.shape[2]
-
-    vector_field_x = (vector_field_x / (vector_field_x.shape[2] / 2)) - 1
-    vector_field_y = (vector_field_y / (vector_field_y.shape[2] / 2)) - 1
-
-    vector_field = torch.stack((vector_field_x, vector_field_y), dim=1)
+    vector_field = torch.where(vector_field < 0, torch.tensor(3 * vector_field.shape[3], dtype=vector_field.dtype), vector_field)
+    vector_field = (vector_field / (vector_field.shape[3] / 2)) - 1
 
     return vector_field
 

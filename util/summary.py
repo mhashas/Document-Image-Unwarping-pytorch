@@ -48,7 +48,7 @@ class TensorboardSummary(object):
             checkname += '-gan_1'
 
         current_dir = os.path.dirname(__file__)
-        directory = os.path.join(current_dir, args.results_root, args.results_dir, args.dataset, args.model, checkname)
+        directory = os.path.join(current_dir, args.results_root, args.results_dir, args.dataset_dir, args.dataset, args.model, checkname)
 
         runs = sorted(glob.glob(os.path.join(directory, 'experiment_*')))
         run_id = int(runs[-1].split('_')[-1]) + 1 if runs else 0
