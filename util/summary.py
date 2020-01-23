@@ -3,9 +3,9 @@ import torch
 from torchvision.utils import make_grid
 from torch.utils.tensorboard import SummaryWriter
 import glob
+
 from util.general_functions import tensor2im, get_flat_images
-import numpy as np
-from PIL import Image
+
 
 from constants import *
 
@@ -68,8 +68,8 @@ class TensorboardSummary(object):
         outputs, targets = get_flat_images(self.args.dataset, images, outputs, targets)
 
         images = [tensor2im(image) for image in images]
-        outputs = [tensor2im(output) for output in outputs]
-        targets = [tensor2im(target) for target in targets]
+        outputs = [tensor2im(output)[:, : int(self.args.resize[0] /2), : int(self.args.resize[1] / 2)] for output in outputs]
+        targets = [tensor2im(target)[:, : int(self.args.resize[0] / 2), : int(self.args.resize[1] / 2)] for target in targets]
 
         grid_image = make_grid(images)
         self.writer.add_image(split + '/ZZ Image', grid_image, step)
