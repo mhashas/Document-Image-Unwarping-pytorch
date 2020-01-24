@@ -359,7 +359,7 @@ def print_training_info(args):
     print('Resize', args.resize)
     print('Batch size', args.batch_size)
     print('Norm layer', args.norm_layer)
-    print('Using cuda', torch.cuda.is_available())
+    print('Using cuda', args.cuda)
     print('Using ' + args.loss_type + ' loss')
     print('Starting Epoch:', args.start_epoch)
     print('Total Epoches:', args.epochs)

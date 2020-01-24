@@ -13,14 +13,15 @@ class ParserOptions():
 
         # model specific
         parser.add_argument('--model', type=str, default=UNET, choices=[DEEPLAB, DEEPLAB_50, UNET, UNET_PAPER, UNET_PYTORCH, PSPNET], help='model name (default:' + DEEPLAB + ')')
-        parser.add_argument('--refine_network', type=int, default=1, choices=[0,1], help='if we should refine the first prediction with a second network ')
+        parser.add_argument('--refine_network', type=int, default=0, choices=[0,1], help='if we should refine the first prediction with a second network ')
         parser.add_argument('--dataset', type=str, default=DOCUNET_INVERTED, choices=[DOCUNET, DOCUNET_IM2IM, DOCUNET_INVERTED], help='dataset (default:' + DOCUNET + ')')
         parser.add_argument('--dataset_dir', type=str, default='labels_dataset', help='name of the dir in which the dataset is located')
         parser.add_argument('--loss_type', type=str, default=SSIM_LOSS, choices=[DOCUNET_LOSS, SSIM_LOSS, SSIM_LOSS_V2, MS_SSIM_LOSS, MS_SSIM_LOSS_V2, L1_LOSS, SMOOTH_L1_LOSS, MSE_LOSS], help='loss func type (default:' + DOCUNET_LOSS + ')')
         parser.add_argument('--second_loss', type=int, default=1, choices=[0,1], help='if we should use two losses')
+        parser.add_argument('--second_loss_rate', type=float, default=10, help='used to tune the overall impact of the second loss')
         parser.add_argument('--norm_layer', type=str, default=BATCH_NORM, choices=[INSTANCE_NORM, BATCH_NORM, SYNC_BATCH_NORM])
         parser.add_argument('--init_type', type=str, default=NORMAL_INIT, choices=[NORMAL_INIT, KAIMING_INIT, XAVIER_INIT, ORTHOGONAL_INIT])
-        parser.add_argument('--resize', type=str, default='64,64', help='image resize: h,w')
+        parser.add_argument('--resize', type=str, default='256,256', help='image resize: h,w')
         parser.add_argument('--batch_size', type=int, default=2, metavar='N', help='input batch size for training (default: 2)')
         parser.add_argument('--optim', type=str, default=ADAM, choices=[SGD, ADAM, RMSPROP, AMSGRAD, ADABOUND])
         parser.add_argument('--lr', type=float, default=0.0001, metavar='LR', help='learning rate (default: auto)')
@@ -35,11 +36,13 @@ class ParserOptions():
         parser.add_argument('--epochs', type=int, default=100, metavar='N', help='number of epochs to train (default: auto)')
         parser.add_argument('--eval-interval', type=int, default=1, help='evaluation interval (default: 1)')
         parser.add_argument('--trainval', type=int, default=0, choices=[0,1], help='determines whether whe should use validation images as well for training')
+        parser.add_argument('--inference', type=int, default=0, choices=[0,1], help='if we should run the model in inference mode')
         parser.add_argument('--debug', type=int, default=1)
         parser.add_argument('--results_root', type=str, default='..')
         parser.add_argument('--results_dir', type=str, default='results_final', help='models are saved here')
         parser.add_argument('--save_dir', type=str, default='saved_models')
         parser.add_argument('--save_best_model', type=int, default=0, choices=[0,1], help='keep track of best model')
+        parser.add_argument('--pretrained_models_dir', type=str, default='pretrained_models', help='root dir of the pretrained models location')
 
         # deeplab specific
         parser.add_argument('--output_stride', type=int, default=16, help='network output stride (default: 16)')

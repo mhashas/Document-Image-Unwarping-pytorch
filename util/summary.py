@@ -89,6 +89,13 @@ class TensorboardSummary(object):
 
         torch.save(model.state_dict(), path + '/' + 'network.pth')
 
+    def load_network(self, model):
+        path = self.args.pretrained_models_dir
+        state_dict = torch.load(path + '/' + 'network.pth') if self.args.cuda else torch.load(path + '/' + 'network.pth', map_location=torch.device('cpu'))
+        model.load_state_dict(state_dict)
+
+        return model
+
     def get_step(self, split):
         if split == TRAIN:
             self.train_step += 1

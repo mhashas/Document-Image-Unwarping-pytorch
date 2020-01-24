@@ -2,6 +2,8 @@ import copy
 from tqdm import tqdm
 import torch
 import math
+import matplotlib.pyplot as plt
+import time
 
 from util.general_functions import get_model, get_optimizer, make_data_loader, get_loss_function, get_flat_images
 from util.lr_scheduler import LR_Scheduler
@@ -15,12 +17,16 @@ class Trainer(object):
     def __init__(self, args):
         self.args = args
         self.best_loss = math.inf
-
+        self.summary = TensorboardSummary(args)
         self.model = get_model(args)
+
+        if args.inference:
+            self.model = self.summary.load_network(self.model)
+
         if args.save_best_model:
             self.best_model = copy.deepcopy(self.model)
+
         self.optimizer = get_optimizer(self.model, args)
-        self.summary = TensorboardSummary(args)
         self.ssim, self.ms_ssim = SSIM(), MS_SSIM()
 
         if args.trainval:
@@ -82,7 +88,7 @@ class Trainer(object):
                 if self.args.second_loss:
                     flat_output_img, flat_target_img = get_flat_images(self.args.dataset, image, output, target)
                     second_loss = self.second_criterion(flat_output_img, flat_target_img)
-                    loss += second_loss
+                    loss += self.args.second_loss_rate * second_loss
 
                     if self.args.refine_network:
                         flat_first_output_img, flat_target_img = get_flat_images(self.args.dataset, image, first_output, target)
@@ -127,10 +133,27 @@ class Trainer(object):
         self.summary.add_scalar(split + '/total_loss_epoch', loss, epoch)
         print('[Epoch: %d, numImages: %5d]' % (epoch, i * self.args.batch_size + image.data.shape[0]))
 
+    def calculate_inference_speed(self, iterations):
+        loader = self.test_loader
+        bar = tqdm(loader)
+        self.model.eval()
+        times = []
+
+        for i, sample in enumerate(bar):
+            image = sample[0]
+
+            start = time.time()
+            with torch.no_grad():
+                output = self.model(image)
+            end = time.time()
+            current_time = end - start
+            print(current_time)
+            times.append(current_time)
+
+            if i>= iterations:
+                break
+
+        return sum(times) / len(times)
 
     def save_network(self):
         self.summary.save_network(self.model)
-
-    def load_network(self):
-        self.best_model = get_model(self.args)
-        self.best_model.load_state_dict(torch.load(''))
