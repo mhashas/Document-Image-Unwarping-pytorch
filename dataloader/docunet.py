@@ -47,6 +47,7 @@ class Docunet(data.Dataset):
         path_label = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
 
         images_path = os.listdir(path_image)
+        images_path = [image_path for image_path in images_path if image_path.endswith(self.DEFORMED_EXT)]
         items = []
 
         for i in range(len(images_path)):

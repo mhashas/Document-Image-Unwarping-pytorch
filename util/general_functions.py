@@ -330,7 +330,7 @@ def invert_vector_field(vector_field):
 
 
 def scale_vector_field_tensor(vector_field):
-    vector_field = torch.where(vector_field < 0, torch.tensor(3 * vector_field.shape[3], dtype=vector_field.dtype), vector_field)
+    vector_field = torch.where(vector_field < 0, torch.tensor(3 * vector_field.shape[3], dtype=vector_field.dtype, device=vector_field.device), vector_field)
     vector_field = (vector_field / (vector_field.shape[3] / 2)) - 1
 
     return vector_field

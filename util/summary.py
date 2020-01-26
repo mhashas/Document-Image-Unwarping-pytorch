@@ -31,16 +31,14 @@ class TensorboardSummary(object):
             checkname += '-downs_' + str(args.num_downs) + '-ngf_' + str(args.ngf) + '-type_' + str(args.down_type)
             checkname += '-refined' if args.refine_network else ''
 
-        checkname += '-init_' + args.init_type
         checkname += '-loss_' + args.loss_type
-        checkname += '-optim_' + args.optim + '-lr_' + str(args.lr)
         checkname += '-sloss_' if args.second_loss else ''
 
         if args.clip > 0:
             checkname += '-clipping_' + str(args.clip)
 
         if args.resize:
-            checkname += '-resize_' + ','.join([str(x) for x in list(args.resize)])
+            checkname += '-' + ','.join([str(x) for x in list(args.resize)])
         checkname += '-epochs_' + str(args.epochs)
         checkname += '-trainval' if args.trainval else ''
 
