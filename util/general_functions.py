@@ -140,28 +140,6 @@ def convert_to_separable_conv(module):
         new_module.add_module(name, convert_to_separable_conv(child))
     return new_module
 
-def get_discriminator_model(args):
-    """
-    Builds the discriminator model based on the provided arguments and returns the initialized model
-
-        Parameters:
-        args (argparse)    -- command line arguments
-        num_classes (int)  -- number of possible classes
-    """
-
-    norm_layer = get_norm_layer(args.norm_layer)
-
-    if args.model_discriminator == PIXEL_DISCRIMINATOR:
-        model = PixelDiscriminator()
-    else:
-        raise NotImplementedError
-
-    print("Built discriminator ", args.model)
-    if args.cuda:
-        model = model.cuda()
-
-    return model
-
 def get_loss_function(mode):
     if mode == DOCUNET_LOSS:
         loss = DocunetLoss()
@@ -171,8 +149,6 @@ def get_loss_function(mode):
         loss = MS_SSIM_Loss_v2()
     elif mode == SSIM_LOSS:
         loss = SSIM_Loss()
-    elif mode == LS_GAN_LOSS:
-        loss = LS_GAN_Loss()
     elif mode == L1_LOSS:
         loss = torch.nn.L1Loss()
     elif mode == SMOOTH_L1_LOSS:
@@ -309,7 +285,6 @@ def set_requires_grad(net, requires_grad=False):
         for param in net.parameters():
             param.requires_grad = requires_grad
 
-
 def tensor2im(input_image, imtype=np.uint8, return_tensor=True):
     """"Converts a Tensor array into a numpy image array.
 
@@ -389,8 +364,6 @@ def scale_vector_field_tensor(vector_field):
 
 def print_training_info(args):
     print('Dataset', args.dataset)
-    if args.gan_training:
-        print('GAN mode activated !!')
 
     if 'unet' in args.model:
         print('Ngf', args.ngf)

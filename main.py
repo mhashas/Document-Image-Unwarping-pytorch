@@ -1,16 +1,12 @@
 from parser_options import ParserOptions
 from util.general_functions import print_training_info
 from constants import *
-from core.trainers.gan_trainer import GANTrainer
 from core.trainers.trainer import Trainer
 
 def main():
     args = ParserOptions().parse()  # get training options
 
-    if args.gan_training:
-        trainer = GANTrainer(args)
-    else:
-        trainer = Trainer(args)
+    trainer = Trainer(args)
 
     print_training_info(args)
 

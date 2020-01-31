@@ -57,11 +57,6 @@ class ParserOptions():
         parser.add_argument('--down_type', type=str, default=MAXPOOL, choices=[STRIDECONV, MAXPOOL], help='method to reduce feature map size')
         parser.add_argument('--dropout', type=float, default=0.2)
 
-        # gan specific
-        parser.add_argument('--gan_training', type=int, default=0, choices=[0,1], help="if we are training in adversarial fashion or not")
-        parser.add_argument('--model_discriminator', type=str, default=PIXEL_DISCRIMINATOR, choices=[PIXEL_DISCRIMINATOR], help='type of discriminator used')
-        parser.add_argument('--gan_loss_type', type=str, default=LS_GAN_LOSS, choices=[LS_GAN_LOSS], help='loss function for gan')
-
         args = parser.parse_args()
         args.size = tuple([int(x) for x in args.size.split(',')])
         args.resize = tuple([int(x) for x in args.resize.split(',')])

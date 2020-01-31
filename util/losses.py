@@ -5,39 +5,6 @@ import torch.nn.functional as F
 from util.ssim import MS_SSIM, SSIM
 from util.ms_ssim import MS_SSIM_v2, SSIM_v2
 
-class LS_GAN_Loss(nn.Module):
-
-    def __init__(self, target_fake_label=0.0, target_real_label=1.0):
-        super(LS_GAN_Loss, self).__init__()
-        self.loss = nn.MSELoss()
-        self.register_buffer('real_label', torch.tensor(target_real_label))
-        self.register_buffer('fake_label', torch.tensor(target_fake_label))
-
-    def get_target_tensor(self, prediction, target_is_real):
-        """Create label tensors with the same size as the input.
-
-        Parameters:
-            prediction (tensor) - - tpyically the prediction from a discriminator
-            target_is_real (bool) - - if the ground truth label is for real images or fake images
-
-        Returns:
-            A label tensor filled with ground truth label, and with the size of the input
-        """
-
-        if target_is_real:
-            target_tensor = self.real_label
-        else:
-            target_tensor = self.fake_label
-        target_tensor = target_tensor.expand_as(prediction)
-
-        return target_tensor.cuda() if torch.cuda.is_available() else target_tensor
-
-    def forward(self, prediction, target_is_real):
-        target_tensor = self.get_target_tensor(prediction, target_is_real)
-        loss = self.loss(prediction, target_tensor)
-
-        return loss
-
 class DocunetLoss_v2(nn.Module):
     def __init__(self, r=0.1,reduction='mean'):
         super(DocunetLoss_v2, self).__init__()
