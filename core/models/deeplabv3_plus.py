@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 from core.models.resnet import ResNet50, ResNet101
+from core.models.mobilenetv2 import MobileNet_v2
+from core.models.mobilenet import MobileNet
 from constants import *
 
 class _ASPPModule(nn.Module):
@@ -25,10 +27,8 @@ class _ASPPModule(nn.Module):
 
 
 class ASPP(nn.Module):
-    def __init__(self, output_stride, norm_layer=nn.BatchNorm2d):
+    def __init__(self, output_stride, norm_layer=nn.BatchNorm2d, inplanes=2048):
         super(ASPP, self).__init__()
-
-        inplanes = 2048
 
         if output_stride == 16:
             dilations = [1, 6, 12, 18]
@@ -69,12 +69,10 @@ class ASPP(nn.Module):
         return self.dropout(x)
 
 class Decoder(nn.Module):
-    def __init__(self, num_classes, norm_layer=nn.BatchNorm2d):
+    def __init__(self, num_classes, norm_layer=nn.BatchNorm2d, inplanes=256):
         super(Decoder, self).__init__()
 
-        low_level_inplanes = 256
-
-        self.conv1 = nn.Conv2d(low_level_inplanes, 48, 1, bias=False)
+        self.conv1 = nn.Conv2d(inplanes, 48, 1, bias=False)
         self.bn1 = norm_layer(48)
         self.relu = nn.ReLU()
 
@@ -100,52 +98,78 @@ class Decoder(nn.Module):
         return x
 
 class DeepLabv3_plus(nn.Module):
-    def __init__(self, args, num_classes=21, norm_layer=nn.BatchNorm2d):
+    def __init__(self, args, num_classes=21, norm_layer=nn.BatchNorm2d, input_channels=3):
         super(DeepLabv3_plus, self).__init__()
+        self.args = args
 
         if args.model == DEEPLAB:
-            self.backbone = ResNet101(args.output_stride, norm_layer=norm_layer, pretrained=False, args=args)
+            self.backbone = ResNet101(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels)
+            self.aspp_inplanes = 2048
+            self.decoder_inplanes = 256
+
+            if self.args.refine_network:
+                self.refine_backbone = ResNet101(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels + num_classes)
         elif args.model == DEEPLAB_50:
-            self.backbone = ResNet50(args.output_stride, norm_layer=norm_layer, pretrained=False, args=args)
+            self.backbone = ResNet50(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained)
+            self.aspp_inplanes = 2048
+            self.decoder_inplanes = 256
+
+            if self.args.refine_network:
+                self.refine_backbone = ResNet50(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels + num_classes)
+        elif args.model == DEEPLAB_MOBILENET:
+            self.backbone = MobileNet_v2(pretrained=args.pretrained, first_layer_input_channels=input_channels)
+            self.aspp_inplanes = 320
+            self.decoder_inplanes = 24
+
+            if self.args.refine_network:
+                self.refine_backbone = MobileNet_v2(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
+        elif args.model == DEEPLAB_MOBILENET_DILATION:
+            self.backbone = MobileNet(pretrained=args.pretrained, first_layer_input_channels=input_channels)
+            self.aspp_inplanes = 320
+
+            if self.args.refine_network:
+                self.refine_backbone = MobileNet(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
+            self.decoder_inplanes = 24
         else:
             raise NotImplementedError
 
-        self.aspp = ASPP(args.output_stride, norm_layer=norm_layer)
-        self.decoder = Decoder(num_classes, norm_layer=norm_layer)
+        self.aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
+        self.decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes)
+
+        if self.args.learned_upsampling:
+            self.learned_upsampling = nn.Sequential(nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1),
+                                                    nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1))
+
+        if self.args.refine_network:
+            self.refine_aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
+            self.refine_decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes)
+
+            if self.args.learned_upsampling:
+                self.refine_learned_upsampling = nn.Sequential(nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1),
+                                                               nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1))
+
 
     def forward(self, input):
         x, low_level_feat = self.backbone(input)
         x = self.aspp(x)
         x = self.decoder(x, low_level_feat)
 
-        # TODO transpose conv?
-        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        if self.args.learned_upsampling:
+            x = self.learned_upsampling(x)
+        else:
+            x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+
+        if self.args.refine_network:
+            x, low_level_feat = self.refine_backbone(torch.cat((input, x), dim=1))
+            x = self.refine_aspp(x)
+            x = self.refine_decoder(x, low_level_feat)
+
+            if self.args.learned_upsampling:
+                x = self.refine_learned_upsampling(x)
+            else:
+                x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
-
-
-    def get_1x_lr_params(self):
-        modules = [self.backbone]
-        for i in range(len(modules)):
-            for m in modules[i].named_modules():
-                if isinstance(m[1], nn.Conv2d) or isinstance(m[1], nn.BatchNorm2d):
-                    for p in m[1].parameters():
-                        if p.requires_grad:
-                            yield p
-
-    def get_10x_lr_params(self):
-        modules = [self.aspp, self.decoder]
-
-        if self.sequence_model_low:
-            modules.append(self.sequence_model_low)
-        if self.sequence_model_high:
-            modules.append(self.sequence_model_high)
-
-        for i in range(len(modules)):
-            for m in modules[i].named_modules():
-                for p in m[1].parameters():
-                    if p.requires_grad:
-                        yield p
 
     def get_train_parameters(self, lr):
         train_params = [{'params': self.parameters(), 'lr': lr}]

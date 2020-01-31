@@ -23,9 +23,12 @@ class TensorboardSummary(object):
     def generate_directory(self, args):
         checkname = 'debug' if args.debug else ''
         checkname += args.model
+        checkname += '_sc' if args.separable_conv else ''
 
         if 'deeplab' in args.model:
             checkname += '-os_' + str(args.output_stride)
+            checkname += '-ls_1' if args.learned_upsampling else ''
+            checkname += '-pt_1' if args.pretrained else ''
 
         if 'unet' in args.model:
             checkname += '-downs_' + str(args.num_downs) + '-ngf_' + str(args.ngf) + '-type_' + str(args.down_type)

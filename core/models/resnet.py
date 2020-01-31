@@ -57,7 +57,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, output_stride, norm_layer=nn.BatchNorm2d, args=None):
+    def __init__(self, block, layers, output_stride, norm_layer=nn.BatchNorm2d, input_channels=3):
         self.inplanes = 64
 
         super(ResNet, self).__init__()
@@ -72,8 +72,7 @@ class ResNet(nn.Module):
             raise NotImplementedError
 
         # Modules
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                                bias=False)
+        self.conv1 = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = norm_layer(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -143,12 +142,8 @@ class ResNet(nn.Module):
         return x, low_level_feat
 
 
-def ResNet101(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, args=None):
-    """Constructs a ResNet-101 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], output_stride, norm_layer=norm_layer, args=args)
+def ResNet101(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, input_channels=3):
+    model = ResNet(Bottleneck, [3, 4, 23, 3], output_stride, norm_layer=norm_layer, input_channels=input_channels)
 
     if pretrained:
         _load_pretrained_model(model, RESNET_101)
@@ -156,12 +151,8 @@ def ResNet101(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, args=No
     return model
 
 
-def ResNet50(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, args=None):
-    """Constructs a ResNet-50 model.
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], output_stride, norm_layer=norm_layer, args=args)
+def ResNet50(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, input_channels=3):
+    model = ResNet(Bottleneck, [3, 4, 6, 3], output_stride, norm_layer=norm_layer, input_channels=input_channels)
 
     if pretrained:
         _load_pretrained_model(model, RESNET_50)

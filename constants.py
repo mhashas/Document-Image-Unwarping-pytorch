@@ -1,6 +1,8 @@
 # Model constants
 DEEPLAB = 'deeplab'
 DEEPLAB_50 = 'deeplab_50'
+DEEPLAB_MOBILENET = 'deeplab_mn'
+DEEPLAB_MOBILENET_DILATION = 'deeplab_mnd'
 UNET = 'unet'
 UNET_PAPER = 'unet_paper'
 UNET_PYTORCH = 'unet_torch'

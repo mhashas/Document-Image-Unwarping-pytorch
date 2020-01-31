@@ -12,7 +12,8 @@ class ParserOptions():
         parser = argparse.ArgumentParser(description='PyTorch Semantic Video Segmentation training')
 
         # model specific
-        parser.add_argument('--model', type=str, default=UNET, choices=[DEEPLAB, DEEPLAB_50, UNET, UNET_PAPER, UNET_PYTORCH, PSPNET], help='model name (default:' + DEEPLAB + ')')
+        parser.add_argument('--model', type=str, default=DEEPLAB_50, choices=[DEEPLAB, DEEPLAB_50, DEEPLAB_MOBILENET, DEEPLAB_MOBILENET_DILATION, UNET, UNET_PAPER, UNET_PYTORCH, PSPNET], help='model name (default:' + DEEPLAB + ')')
+        parser.add_argument('--separable_conv', type=int, default=0, choices=[0,1], help='if we should convert normal convolutions to separable convolutions' )
         parser.add_argument('--refine_network', type=int, default=0, choices=[0,1], help='if we should refine the first prediction with a second network ')
         parser.add_argument('--dataset', type=str, default=DOCUNET_INVERTED, choices=[DOCUNET, DOCUNET_IM2IM, DOCUNET_INVERTED], help='dataset (default:' + DOCUNET + ')')
         parser.add_argument('--dataset_dir', type=str, default='address_dataset', help='name of the dir in which the dataset is located')
@@ -20,8 +21,8 @@ class ParserOptions():
         parser.add_argument('--second_loss', type=int, default=1, choices=[0,1], help='if we should use two losses')
         parser.add_argument('--second_loss_rate', type=float, default=10, help='used to tune the overall impact of the second loss')
         parser.add_argument('--norm_layer', type=str, default=BATCH_NORM, choices=[INSTANCE_NORM, BATCH_NORM, SYNC_BATCH_NORM])
-        parser.add_argument('--init_type', type=str, default=NORMAL_INIT, choices=[NORMAL_INIT, KAIMING_INIT, XAVIER_INIT, ORTHOGONAL_INIT])
-        parser.add_argument('--resize', type=str, default='256,256', help='image resize: h,w')
+        parser.add_argument('--init_type', type=str, default=KAIMING_INIT, choices=[NORMAL_INIT, KAIMING_INIT, XAVIER_INIT, ORTHOGONAL_INIT])
+        parser.add_argument('--resize', type=str, default='64,64', help='image resize: h,w')
         parser.add_argument('--batch_size', type=int, default=2, metavar='N', help='input batch size for training (default: 2)')
         parser.add_argument('--optim', type=str, default=ADAM, choices=[SGD, ADAM, RMSPROP, AMSGRAD, ADABOUND])
         parser.add_argument('--lr', type=float, default=0.0001, metavar='LR', help='learning rate (default: auto)')
@@ -46,6 +47,9 @@ class ParserOptions():
 
         # deeplab specific
         parser.add_argument('--output_stride', type=int, default=16, help='network output stride (default: 16)')
+        parser.add_argument('--pretrained', type=int, default=0, choices=[0,1], help='if we should use a pretrained model or not')
+        parser.add_argument('--learned_upsampling', type=int, default=0, choices=[0,1], help='if we should use bilinear upsampling or learned upsampling')
+        parser.add_argument('--use_assp', type=int, default=1, choices=[0,1], help='if we should aspp in the deeplab head or not')
 
         # unet specific
         parser.add_argument('--num_downs', type=int, default=8, help='number of unet encoder-decoder blocks')

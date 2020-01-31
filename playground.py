@@ -6,6 +6,7 @@ import torchvision.transforms as standard_transforms
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import time
+import os
 
 from core.trainers.trainer import Trainer
 from parser_options import ParserOptions
@@ -38,6 +39,17 @@ def pytorch_invert(invert=False):
     flatten_label = apply_transformation_to_image(deformed_label, vector_field)
     plt.imsave('../our_flatten_2.jpg', flatten_label.permute(1,2,0).cpu().numpy())
 
+def check_duplicates(source_folder_name, destination_folder_name):
+    source_files = set(os.listdir(source_folder_name))
+    destination_files = set(os.listdir(destination_folder_name))
+    intersection = source_files.intersection(destination_files)
+    intersection.remove('Thumbs.db')
+
+    if len(intersection) == 0:
+        print("OK")
+    else:
+        print("NOT OK")
+
 def network_predict():
     args = ParserOptions().parse()
     args.cuda = False
@@ -49,4 +61,6 @@ def network_predict():
     print('Mean time', mean_time)
 
 if __name__ == "__main__":
-    network_predict()
+    source_folder_name = '../hazmat_dataset/train/cropped_labels/'
+    destination_folder_name = '../hazmat_dataset/test/cropped_labels/'
+    check_duplicates(source_folder_name, destination_folder_name)

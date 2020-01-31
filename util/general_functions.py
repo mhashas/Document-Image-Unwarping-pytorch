@@ -8,6 +8,7 @@ import functools
 import cv2
 
 from core.models.deeplabv3_plus import DeepLabv3_plus
+from core.models.mobilenetv2 import MobileNet_v2
 from core.models.pspnet import PSPNet
 from core.models.unet import UNet
 from core.models.unet_paper import UNet_paper
@@ -67,6 +68,10 @@ def get_model(args):
 
     if DEEPLAB in args.model:
         model = DeepLabv3_plus(args, num_classes=num_classes, norm_layer=norm_layer)
+
+        if args.model != DEEPLAB_MOBILENET and args.separable_conv:
+            convert_to_separable_conv(model)
+
         model = init_model(model, args.init_type)
     elif UNET in args.model:
         if args.model == UNET:
@@ -76,6 +81,9 @@ def get_model(args):
         elif args.model == UNET_PYTORCH:
             model = UNet_torch(num_classes=num_classes, args=args)
 
+        if args.separable_conv:
+            convert_to_separable_conv(model)
+
         model = init_model(model, args.init_type)
     elif PSPNET in args.model:
         model = PSPNet(num_classes=num_classes, args=args)
@@ -83,10 +91,54 @@ def get_model(args):
         raise NotImplementedError
 
     print("Built " + args.model)
+
     if args.cuda:
         model = model.cuda()
 
     return model
+
+def convert_to_separable_conv(module):
+    class SeparableConvolution(nn.Module):
+        """ Separable Convolution
+        """
+
+        def __init__(self, in_channels, out_channels, kernel_size,
+                     stride=1, padding=0, dilation=1, bias=True):
+            super(SeparableConvolution, self).__init__()
+            self.body = nn.Sequential(
+                # Separable Conv
+                nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, stride=stride, padding=padding,
+                          dilation=dilation, bias=bias, groups=in_channels),
+                # PointWise Conv
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=bias),
+            )
+
+            self._init_weight()
+
+        def forward(self, x):
+            return self.body(x)
+
+        def _init_weight(self):
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.kaiming_normal_(m.weight)
+                elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+
+    new_module = module
+    if isinstance(module, nn.Conv2d) and module.kernel_size[0]>1:
+        new_module = SeparableConvolution(module.in_channels,
+                                      module.out_channels,
+                                      module.kernel_size,
+                                      module.stride,
+                                      module.padding,
+                                      module.dilation,
+                                      module.bias is not None)
+
+    for name, child in module.named_children():
+        new_module.add_module(name, convert_to_separable_conv(child))
+    return new_module
 
 def get_discriminator_model(args):
     """
@@ -348,7 +400,11 @@ def print_training_info(args):
 
     if 'deeplab' in args.model:
         print('Output stride', args.output_stride)
+        print('Learned upsampling', args.learned_upsampling)
+        print('Pretrained', args.pretrained)
+        print('Use aspp', args.use_assp)
 
+    print('Separable conv', args.separable_conv)
     print('Optimizer', args.optim)
     print('Learning rate', args.lr)
     print('Second loss', args.second_loss)
