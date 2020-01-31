@@ -45,9 +45,6 @@ class TensorboardSummary(object):
         checkname += '-epochs_' + str(args.epochs)
         checkname += '-trainval' if args.trainval else ''
 
-        if args.gan_training:
-            checkname += '-gan_1'
-
         current_dir = os.path.dirname(__file__)
         directory = os.path.join(current_dir, args.results_root, args.results_dir, args.dataset_dir, args.dataset, args.model, checkname)
 

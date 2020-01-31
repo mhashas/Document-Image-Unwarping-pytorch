@@ -72,10 +72,6 @@ class ParserOptions():
         if args.gpu_ids and args.norm_layer == BATCH_NORM:
             args.norm_layer = SYNC_BATCH_NORM
 
-        if args.gan_training:
-            args.dataset = DOCUNET_IM2IM
-            args.down_type = STRIDECONV
-
         if args.dataset == DOCUNET or args.dataset == DOCUNET_INVERTED:
             args.size = args.resize
 

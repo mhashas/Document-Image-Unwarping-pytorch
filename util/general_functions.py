@@ -13,7 +13,6 @@ from core.models.pspnet import PSPNet
 from core.models.unet import UNet
 from core.models.unet_paper import UNet_paper
 from core.models.unet_pytorch import UNet_torch
-from core.models.pixel_discriminator import PixelDiscriminator
 
 from dataloader.docunet import Docunet
 from dataloader.docunet_inverted import InvertedDocunet
