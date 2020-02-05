@@ -50,7 +50,7 @@ class InvertedDocunet(data.Dataset):
         labels_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
 
         images_name = os.listdir(images_path)
-        images_name = [image_name for image_name in images_name if images_name.endswith(self.DEFORMED_EXT)]
+        images_name = [image_name for image_name in images_name if image_name.endswith(self.DEFORMED_EXT)]
         items = []
 
         for i in range(len(images_name)):

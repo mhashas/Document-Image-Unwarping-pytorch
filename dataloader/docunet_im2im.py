@@ -46,12 +46,12 @@ class DocunetIm2Im(data.Dataset):
         labels_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.LABELS)
 
         images_name = os.listdir(images_path)
-        images_name = [image_name for image_name in images_name if images_name.endswith(self.DEFORMED_EXT)]
+        images_name = [image_name for image_name in images_name if image_name.endswith(self.DEFORMED_EXT)]
         items = []
 
         for i in range(len(images_name)):
             image_name = images_name[i]
-            label_name = image_name.replace(self.DEFORMED_EXT, self.VECTOR_FIELD_EXT)
+            label_name = '_'.join(image_name.split('_')[:-1]) + self.LABEL_EXT
             items.append((os.path.join(images_path, image_name), os.path.join(labels_path, label_name)))
 
         return items
