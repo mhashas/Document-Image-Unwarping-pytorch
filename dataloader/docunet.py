@@ -43,17 +43,17 @@ class Docunet(data.Dataset):
 
     def make_dataset(self):
         current_dir = os.path.dirname(__file__)
-        path_image = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.DEFORMED + '_' + 'x'.join(map(str, self.args.size)))
-        path_label = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
+        images_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.DEFORMED + '_' + 'x'.join(map(str, self.args.size)))
+        labels_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
 
-        images_path = os.listdir(path_image)
-        images_path = [image_path for image_path in images_path if image_path.endswith(self.DEFORMED_EXT)]
+        images_name = os.listdir(images_path)
+        images_name = [image_name for image_name in images_name if images_name.endswith(self.DEFORMED_EXT)]
         items = []
 
-        for i in range(len(images_path)):
-            image_path = images_path[i]
-            label_path = image_path.replace(self.DEFORMED_EXT, self.VECTOR_FIELD_EXT)
-            items.append((os.path.join(path_image, image_path), os.path.join(path_label, label_path)))
+        for i in range(len(images_name)):
+            image_name = images_name[i]
+            label_name = image_name.replace(self.DEFORMED_EXT, self.VECTOR_FIELD_EXT)
+            items.append((os.path.join(images_path, image_name), os.path.join(labels_path, label_name)))
 
         return items
 

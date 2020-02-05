@@ -5,7 +5,6 @@ from core.trainers.trainer import Trainer
 
 def main():
     args = ParserOptions().parse()  # get training options
-
     trainer = Trainer(args)
 
     print_training_info(args)

@@ -50,17 +50,23 @@ def check_duplicates(source_folder_name, destination_folder_name):
     else:
         print("NOT OK")
 
-def network_predict():
+def network_predict(iterations=20, pretrained_model=''):
+    if not pretrained_model:
+        raise NotImplementedError()
+
     args = ParserOptions().parse()
     args.cuda = False
     args.batch_size = 1
     args.inference = 1
-    args.pretrained_models_dir = 'saved_models/docunet_inverted/unet/unet-downs_8-ngf_128-type_maxpool-init_normal-loss_docunet_loss-optim_adam-lr_0.0001-resize_256,256-epochs_100/experiment_0'
+    args.pretrained_models_dir = pretrained_model
+    args.num_downs = 8
+    args.resize, args.size = (256,256), (256,256)
+    args.model = DEEPLAB_MOBILENET
+    #args.refine_network = 1
     trainer = Trainer(args)
-    mean_time = trainer.calculate_inference_speed(10)
+    mean_time = trainer.calculate_inference_speed(iterations)
     print('Mean time', mean_time)
 
 if __name__ == "__main__":
-    source_folder_name = '../hazmat_dataset/train/cropped_labels/'
-    destination_folder_name = '../hazmat_dataset/test/cropped_labels/'
-    check_duplicates(source_folder_name, destination_folder_name)
+    model = 'saved_models/deeplab_mn.pth'
+    network_predict(pretrained_model=model)

@@ -7,14 +7,46 @@ import torch.utils.model_zoo as model_zoo
 
 RESNET_101 = 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth'
 RESNET_50 = 'https://download.pytorch.org/models/resnet50-19c8e357.pth'
+RESNET_34 = 'https://download.pytorch.org/models/resnet34-333f7ec4.pth'
+RESNET_18 = 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
 
-model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
-}
+class BasicBlock(nn.Module):
+    expansion = 1
+    __constants__ = ['downsample']
+
+    def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None, norm_layer=None):
+        super(BasicBlock, self).__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        if dilation > 1:
+            dilation = 1
+
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = nn.Conv2d(inplanes, planes, stride=stride, kernel_size=3, padding=1, bias=False)
+        self.bn1 = norm_layer(planes)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(planes, planes, stride=stride, kernel_size=3, padding=1, bias=False)
+        self.bn2 = norm_layer(planes)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+
+        return out
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -141,6 +173,23 @@ class ResNet(nn.Module):
 
         return x, low_level_feat
 
+
+def ResNet18(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, input_channels=3):
+    model = ResNet(BasicBlock, [2, 2, 2, 2], output_stride, norm_layer=norm_layer, input_channels=input_channels)
+
+    if pretrained:
+        _load_pretrained_model(model, RESNET_18)
+
+    return model
+
+
+def ResNet34(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, input_channels=3):
+    model = ResNet(BasicBlock, [3, 4, 23, 3], output_stride, norm_layer=norm_layer, input_channels=input_channels)
+
+    if pretrained:
+        _load_pretrained_model(model, RESNET_34)
+
+    return model
 
 def ResNet101(output_stride, norm_layer=nn.BatchNorm2d, pretrained=True, input_channels=3):
     model = ResNet(Bottleneck, [3, 4, 23, 3], output_stride, norm_layer=norm_layer, input_channels=input_channels)

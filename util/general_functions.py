@@ -43,14 +43,14 @@ def make_data_loader(args, split=TRAIN):
         train_set = dataset(args, split=TRAIN)
         val_set = dataset(args, split=VAL)
         trainval_set = ConcatDataset([train_set, val_set])
-        loader = DataLoader(trainval_set, batch_size=args.batch_size, num_workers=8, shuffle=True)
+        loader = DataLoader(trainval_set, batch_size=args.batch_size, num_workers=1, shuffle=True)
     else:
         set = dataset(args, split=split)
 
         if split == TRAIN:
-            loader = DataLoader(set, batch_size=args.batch_size, num_workers=8, shuffle=True)
+            loader = DataLoader(set, batch_size=args.batch_size, num_workers=1, shuffle=True)
         else:
-            loader = DataLoader(set, batch_size=args.batch_size, num_workers=8, shuffle=False)
+            loader = DataLoader(set, batch_size=args.batch_size, num_workers=1, shuffle=False)
 
     return loader
 
@@ -368,14 +368,14 @@ def print_training_info(args):
         print('Ngf', args.ngf)
         print('Num downs', args.num_downs)
         print('Down type', args.down_type)
-        print('Refine network', args.refine_network)
 
     if 'deeplab' in args.model:
         print('Output stride', args.output_stride)
         print('Learned upsampling', args.learned_upsampling)
         print('Pretrained', args.pretrained)
-        print('Use aspp', args.use_assp)
+        print('Use aspp', args.use_aspp)
 
+    print('Refine network', args.refine_network)
     print('Separable conv', args.separable_conv)
     print('Optimizer', args.optim)
     print('Learning rate', args.lr)

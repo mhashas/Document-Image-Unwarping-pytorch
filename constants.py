@@ -1,6 +1,8 @@
 # Model constants
 DEEPLAB = 'deeplab'
 DEEPLAB_50 = 'deeplab_50'
+DEEPLAB_34 = 'deeplab_34'
+DEEPLAB_18 = 'deeplab_18'
 DEEPLAB_MOBILENET = 'deeplab_mn'
 DEEPLAB_MOBILENET_DILATION = 'deeplab_mnd'
 UNET = 'unet'
@@ -12,6 +14,11 @@ PSPNET = 'pspnet'
 DOCUNET = 'docunet'
 DOCUNET_INVERTED = 'docunet_inverted'
 DOCUNET_IM2IM = 'docunet_im2im'
+
+# Dataset locations
+HAZMAT_DATASET = 'hazmat_dataset'
+ADDRESS_DATASET = 'address_dataset'
+LABELS_DATASET = 'labels_dataset'
 
 # loss constants
 DOCUNET_LOSS = 'docunet_loss'

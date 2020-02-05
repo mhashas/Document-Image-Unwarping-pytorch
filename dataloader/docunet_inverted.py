@@ -5,6 +5,7 @@ import torchvision.transforms as standard_transforms
 import util.custom_transforms as custom_transforms
 from scipy import io
 
+from constants import *
 
 class InvertedDocunet(data.Dataset):
     NUM_CLASSES = 2
@@ -15,7 +16,7 @@ class InvertedDocunet(data.Dataset):
     VECTOR_FIELD = 'inverted_vf'
     VECTOR_FIELD_EXT = '.mat'
 
-    def __init__(self, args, split="train"):
+    def __init__(self, args, split=TRAIN):
         self.args = args
         self.split = split
         self.dataset = self.make_dataset()
@@ -30,6 +31,8 @@ class InvertedDocunet(data.Dataset):
 
     def __getitem__(self, index):
         image_path, label_path = self.dataset[index]
+
+
         image = Image.open(image_path)
         label = io.loadmat(label_path)['inverted_vector_field']
 
@@ -43,17 +46,17 @@ class InvertedDocunet(data.Dataset):
 
     def make_dataset(self):
         current_dir = os.path.dirname(__file__)
-        path_image = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.DEFORMED + '_' + 'x'.join(map(str, self.args.size)))
-        path_label = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
+        images_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.DEFORMED + '_' + 'x'.join(map(str, self.args.size)))
+        labels_path = os.path.join(current_dir, self.ROOT, self.args.dataset_dir, self.split, self.VECTOR_FIELD + '_' + 'x'.join(map(str, self.args.size)))
 
-        images_path = os.listdir(path_image)
-        images_path = [image_path for image_path in images_path if image_path.endswith(self.DEFORMED_EXT)]
+        images_name = os.listdir(images_path)
+        images_name = [image_name for image_name in images_name if images_name.endswith(self.DEFORMED_EXT)]
         items = []
 
-        for i in range(len(images_path)):
-            image_path = images_path[i]
-            label_path = image_path.replace(self.DEFORMED_EXT, self.VECTOR_FIELD_EXT)
-            items.append((os.path.join(path_image, image_path), os.path.join(path_label, label_path)))
+        for i in range(len(images_name)):
+            image_name = images_name[i]
+            label_name = image_name.replace(self.DEFORMED_EXT, self.VECTOR_FIELD_EXT)
+            items.append((os.path.join(images_path, image_name), os.path.join(labels_path, label_name)))
 
         return items
 

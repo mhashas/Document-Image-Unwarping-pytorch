@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from core.models.resnet import ResNet50, ResNet101
+from core.models.resnet import ResNet101, ResNet50, ResNet34, ResNet18
 from core.models.mobilenetv2 import MobileNet_v2
 from core.models.mobilenet import MobileNet
 from constants import *
@@ -69,14 +69,16 @@ class ASPP(nn.Module):
         return self.dropout(x)
 
 class Decoder(nn.Module):
-    def __init__(self, num_classes, norm_layer=nn.BatchNorm2d, inplanes=256):
+    def __init__(self, num_classes, norm_layer=nn.BatchNorm2d, inplanes=256, aspp_outplanes=256):
         super(Decoder, self).__init__()
 
         self.conv1 = nn.Conv2d(inplanes, 48, 1, bias=False)
         self.bn1 = norm_layer(48)
         self.relu = nn.ReLU()
 
-        self.last_conv = nn.Sequential(nn.Conv2d(304, 256, kernel_size=3, stride=1, padding=1, bias=False),
+        inplanes = 48 + aspp_outplanes
+
+        self.last_conv = nn.Sequential(nn.Conv2d(inplanes, 256, kernel_size=3, stride=1, padding=1, bias=False),
                                        norm_layer(256),
                                        nn.ReLU(),
                                        nn.Dropout2d(0.5),
@@ -116,6 +118,20 @@ class DeepLabv3_plus(nn.Module):
 
             if self.args.refine_network:
                 self.refine_backbone = ResNet50(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels + num_classes)
+        elif args.model == DEEPLAB_34:
+            self.backbone = ResNet34(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained)
+            self.aspp_inplanes = 2048
+            self.decoder_inplanes = 256
+
+            if self.args.refine_network:
+                self.refine_backbone = ResNet34(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels + num_classes)
+        elif args.model == DEEPLAB_18:
+            self.backbone = ResNet18(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained)
+            self.aspp_inplanes = 2048
+            self.decoder_inplanes = 256
+
+            if self.args.refine_network:
+                self.refine_backbone = ResNet18(args.output_stride, norm_layer=norm_layer, pretrained=args.pretrained, input_channels=input_channels + num_classes)
         elif args.model == DEEPLAB_MOBILENET:
             self.backbone = MobileNet_v2(pretrained=args.pretrained, first_layer_input_channels=input_channels)
             self.aspp_inplanes = 320
@@ -123,6 +139,7 @@ class DeepLabv3_plus(nn.Module):
 
             if self.args.refine_network:
                 self.refine_backbone = MobileNet_v2(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
+
         elif args.model == DEEPLAB_MOBILENET_DILATION:
             self.backbone = MobileNet(pretrained=args.pretrained, first_layer_input_channels=input_channels)
             self.aspp_inplanes = 320
@@ -133,16 +150,21 @@ class DeepLabv3_plus(nn.Module):
         else:
             raise NotImplementedError
 
-        self.aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
-        self.decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes)
+        if self.args.use_aspp:
+            self.aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
+
+        aspp_outplanes = 256 if self.args.use_aspp else self.aspp_inplanes
+        self.decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes, aspp_outplanes=aspp_outplanes)
 
         if self.args.learned_upsampling:
             self.learned_upsampling = nn.Sequential(nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1),
                                                     nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1))
 
         if self.args.refine_network:
-            self.refine_aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
-            self.refine_decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes)
+            if self.args.use_aspp:
+                self.refine_aspp = ASPP(args.output_stride, norm_layer=norm_layer, inplanes=self.aspp_inplanes)
+
+            self.refine_decoder = Decoder(num_classes, norm_layer=norm_layer, inplanes=self.decoder_inplanes, aspp_outplanes=aspp_outplanes)
 
             if self.args.learned_upsampling:
                 self.refine_learned_upsampling = nn.Sequential(nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1),
@@ -150,27 +172,34 @@ class DeepLabv3_plus(nn.Module):
 
 
     def forward(self, input):
-        x, low_level_feat = self.backbone(input)
-        x = self.aspp(x)
-        x = self.decoder(x, low_level_feat)
+        output, low_level_feat = self.backbone(input)
+
+        if self.args.use_aspp:
+            output = self.aspp(output)
+
+        output = self.decoder(output, low_level_feat)
 
         if self.args.learned_upsampling:
-            x = self.learned_upsampling(x)
+            output = self.learned_upsampling(output)
         else:
-            x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+            output = F.interpolate(output, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         if self.args.refine_network:
-            x, low_level_feat = self.refine_backbone(torch.cat((input, x), dim=1))
-            x = self.refine_aspp(x)
-            x = self.refine_decoder(x, low_level_feat)
+            second_output, low_level_feat = self.refine_backbone(torch.cat((input, output), dim=1))
+
+            if self.args.use_aspp:
+                second_output = self.refine_aspp(second_output)
+
+            second_output = self.refine_decoder(second_output, low_level_feat)
 
             if self.args.learned_upsampling:
-                x = self.refine_learned_upsampling(x)
+                second_output = self.refine_learned_upsampling(second_output)
             else:
-                x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+                second_output = F.interpolate(second_output, size=input.size()[2:], mode='bilinear', align_corners=True)
 
-        return x
+            return output, second_output
 
+        return output
     def get_train_parameters(self, lr):
         train_params = [{'params': self.parameters(), 'lr': lr}]
 

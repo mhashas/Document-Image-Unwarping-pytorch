@@ -29,6 +29,7 @@ class TensorboardSummary(object):
             checkname += '-os_' + str(args.output_stride)
             checkname += '-ls_1' if args.learned_upsampling else ''
             checkname += '-pt_1' if args.pretrained else ''
+            checkname += '-aspp_0' if not args.use_aspp else ''
 
         if 'unet' in args.model:
             checkname += '-downs_' + str(args.num_downs) + '-ngf_' + str(args.ngf) + '-type_' + str(args.down_type)
@@ -89,7 +90,7 @@ class TensorboardSummary(object):
 
     def load_network(self, model):
         path = self.args.pretrained_models_dir
-        state_dict = torch.load(path + '/' + 'network.pth') if self.args.cuda else torch.load(path + '/' + 'network.pth', map_location=torch.device('cpu'))
+        state_dict = torch.load(path) if self.args.cuda else torch.load(path, map_location=torch.device('cpu'))
         model.load_state_dict(state_dict)
 
         return model
