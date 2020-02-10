@@ -24,6 +24,7 @@ class TensorboardSummary(object):
         checkname = 'debug' if args.debug else ''
         checkname += args.model
         checkname += '_sc' if args.separable_conv else ''
+        checkname += '-refined' if args.refine_network else ''
 
         if 'deeplab' in args.model:
             checkname += '-os_' + str(args.output_stride)
@@ -33,7 +34,6 @@ class TensorboardSummary(object):
 
         if 'unet' in args.model:
             checkname += '-downs_' + str(args.num_downs) + '-ngf_' + str(args.ngf) + '-type_' + str(args.down_type)
-            checkname += '-refined' if args.refine_network else ''
 
         checkname += '-loss_' + args.loss_type
         checkname += '-sloss_' if args.second_loss else ''

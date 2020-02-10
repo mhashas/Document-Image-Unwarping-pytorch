@@ -54,8 +54,8 @@ class DocunetLoss(nn.Module):
         zeros_x = torch.zeros(x.size()).cuda() if torch.cuda.is_available() else torch.zeros(x.size())
         zeros_y = torch.zeros(y.size()).cuda() if torch.cuda.is_available() else torch.zeros(y.size())
 
-        loss_term_3_x = torch.max(zeros_x, output[:, 0, :, :].squeeze(dim=1))
-        loss_term_3_y = torch.max(zeros_y, output[:, 1, :, :].squeeze(dim=1))
+        loss_term_3_x = torch.max(zeros_x, output[:, 0, :, :])
+        loss_term_3_y = torch.max(zeros_y, output[:, 1, :, :])
         loss_term_3 = torch.sum((loss_term_3_x + loss_term_3_y) * back_sign) / torch.sum(back_sign)
 
         loss = loss_term_1 - self.lamda * loss_term_2 + loss_term_3
