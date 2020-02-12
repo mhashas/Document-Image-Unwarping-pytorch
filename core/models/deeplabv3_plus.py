@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from core.models.resnet import ResNet101, ResNet50, ResNet34, ResNet18
 from core.models.mobilenetv2 import MobileNet_v2
-from core.models.mobilenet import MobileNet
+from core.models.mobilenet_v2_dilation import MobileNet_v2_dilation
 from constants import *
 
 class _ASPPModule(nn.Module):
@@ -141,11 +141,11 @@ class DeepLabv3_plus(nn.Module):
                 self.refine_backbone = MobileNet_v2(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
 
         elif args.model == DEEPLAB_MOBILENET_DILATION:
-            self.backbone = MobileNet(pretrained=args.pretrained, first_layer_input_channels=input_channels)
+            self.backbone = MobileNet_v2_dilation(pretrained=args.pretrained, first_layer_input_channels=input_channels)
             self.aspp_inplanes = 320
 
             if self.args.refine_network:
-                self.refine_backbone = MobileNet(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
+                self.refine_backbone = MobileNet_v2_dilation(pretrained=args.pretrained, first_layer_input_channels=input_channels + num_classes)
             self.decoder_inplanes = 24
         else:
             raise NotImplementedError

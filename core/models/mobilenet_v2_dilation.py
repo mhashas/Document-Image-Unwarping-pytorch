@@ -136,7 +136,7 @@ class MobileNetV2(nn.Module):
         return x, low_level_feat
 
 
-def MobileNet(pretrained=False, **kwargs):
+def MobileNet_v2_dilation(pretrained=False, **kwargs):
     model = MobileNetV2(**kwargs)
     if pretrained:
         _load_pretrained_model(model, model_urls['mobilenet_v2'])

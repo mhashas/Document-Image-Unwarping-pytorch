@@ -112,18 +112,8 @@ def convert_to_separable_conv(module):
                 nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=bias),
             )
 
-            self._init_weight()
-
         def forward(self, x):
             return self.body(x)
-
-        def _init_weight(self):
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
-                    nn.init.kaiming_normal_(m.weight)
-                elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
 
     new_module = module
     if isinstance(module, nn.Conv2d) and module.kernel_size[0]>1:
