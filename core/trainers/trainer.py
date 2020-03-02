@@ -41,7 +41,7 @@ class Trainer(object):
             self.second_criterion = get_loss_function(MS_SSIM_LOSS)
 
     def run_epoch(self, epoch, split=TRAIN):
-        loss = 0.0
+        total_loss = 0.0
         ssim_values, ms_ssim_values = [], []
 
         if split == TRAIN:
@@ -116,8 +116,8 @@ class Trainer(object):
                 elif split == VISUALIZATION:
                     self.summary.visualize_image(image, target, output, split=split)
 
-                loss += loss.item()
-                bar.set_description(split +' loss: %.3f' % (loss / (i + 1)))
+                total_loss += loss.item()
+                bar.set_description(split +' loss: %.3f' % (loss.item()))
 
         if split == TEST:
             ssim = sum(ssim_values) / len(ssim_values)
@@ -125,12 +125,12 @@ class Trainer(object):
             self.summary.add_scalar(split + '/ssim', ssim, epoch)
             self.summary.add_scalar(split + '/ms_ssim', ms_ssim, epoch)
 
-            if loss < self.best_loss:
-                self.best_loss = loss
+            if total_loss < self.best_loss:
+                self.best_loss = total_loss
                 if self.args.save_best_model:
                     self.best_model = copy.deepcopy(self.model)
 
-        self.summary.add_scalar(split + '/total_loss_epoch', loss, epoch)
+        self.summary.add_scalar(split + '/total_loss_epoch', total_loss, epoch)
         print('[Epoch: %d, numImages: %5d]' % (epoch, i * self.args.batch_size + image.data.shape[0]))
 
     def calculate_inference_speed(self, iterations):

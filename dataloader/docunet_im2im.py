@@ -9,7 +9,7 @@ from scipy import io
 class DocunetIm2Im(data.Dataset):
     NUM_CLASSES = 2
     CLASSES = ["foreground", "background"]
-    ROOT = '../../'
+    ROOT = '../../../datasets/'
     DEFORMED = 'deformed_labels'
     LABELS = 'cropped_labels'
     DEFORMED_EXT = '.jpg'

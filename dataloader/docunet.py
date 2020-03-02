@@ -9,7 +9,7 @@ class Docunet(data.Dataset):
 
     NUM_CLASSES = 2
     CLASSES = ["foreground", "background"]
-    ROOT = '../../'
+    ROOT = '../../../datasets/'
     DEFORMED = 'deformed_labels'
     DEFORMED_EXT = '.jpg'
     VECTOR_FIELD = 'target_vf'
