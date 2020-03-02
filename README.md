@@ -23,8 +23,8 @@ Unfortunately, I am not allowed to make public the dataset. The idea is to creat
 ## Training on your dataset
 1. Check the [available parser options](parser_options.py).
 2. Set the path to your dataset in the [available parser options](parser_options.py).
-3. Create the environment from the [conda file](environment.yml): conda env create -f environment.yml
-4. Activate the conda environment: conda activate unwarping_assignment
+3. Create the environment from the [conda file](environment.yml): `conda env create -f environment.yml`
+4. Activate the conda environment: `conda activate unwarping_assignment`
 5. Train the networks using the provided scripts: [1](main.py), [2](train.sh). The trained model is saved to the save_dir command line argument.
 6. Run the [inference script](playground.py) on your set. The command line argument inference_dir should be used to provide the
 relative path to the folder which contains the images to be classified.
