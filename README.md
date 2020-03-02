@@ -9,7 +9,7 @@ We extend this work by:
 * predicting the inverted vector fields directly, which saves computation time during inference
 * adding more networks that can be used: from UNet to Deeplabv3+ with different backbones
 * adding a second loss function (MS-SSIM / SSIM) to measure the similarity between unwarped and target image
-* achieving real-time inference speed (300ms) for Deeplabv3+ with MobileNetv2 as backbone
+* achieving real-time inference speed (300ms) on cpu for Deeplabv3+ with MobileNetv2 as backbone
 
 ## Training dataset
 
