@@ -13,8 +13,9 @@ We extend this work by:
 
 ## Training dataset
 
-Unfortunately, I am not allowed to make public the dataset. The idea is to create a 
-2D vector field to deform a flat input image. The deformed image is used as network input and the vector field is the network target.
+Unfortunately, I am not allowed to make public the dataset. However, I created a very small toy dataset to give you an idea of how the network input should look. 
+You can find this [here](https://drive.google.com/file/d/16Ay3NVzFmsVe1saMOZam-9nHBE0xcmyA/view?usp=sharing).
+The idea is to create a 2D vector field to deform a flat input image. The deformed image is used as network input and the vector field is the network target.
 
 <p align="center">
   <img src="readme_images/generating_deformed_images.PNG">
